@@ -5,59 +5,96 @@ const About = () => {
   return (
     <section id="about" className="about-section">
       <div className="about-container">
+        {/* ============================= */}
+        {/* HEADER TEXT */}
+        {/* ============================= */}
         <h2 className="about-heading">About ADM Travels</h2>
+        <div className="gold-divider"></div>
         <p className="about-subheading">
           Your trusted partner for unforgettable Cape Town experiences
         </p>
-        
-        <div className="about-content">
-          <div className="about-text">
-            <p className="about-paragraph">
-              Welcome to <strong>ADM Travels</strong>, Cape Town's premier travel agency dedicated to showcasing 
-              the extraordinary beauty, culture, and adventure that South Africa's Mother City has to offer.
-            </p>
-            <p className="about-paragraph">
-              Based in the heart of Cape Town, we specialize in creating personalized travel experiences that 
-              capture the essence of this magnificent destination. From the iconic Table Mountain to the 
-              historic Robben Island, from pristine beaches to world-class wine estates, we bring you closer 
-              to the very best of Cape Town.
-            </p>
-            <p className="about-paragraph">
-              Our team of local experts possesses intimate knowledge of every hidden gem, cultural landmark, 
-              and breathtaking vista. We don't just plan tours—we craft memories that last a lifetime.
-            </p>
+
+        {/* ============================= */}
+        {/* ABOUT INTRO TEXT */}
+        {/* ============================= */}
+        <div className="about-text">
+          <p className="about-paragraph">
+            Welcome to <strong>ADM Travels</strong> — your Cape Town travel specialist dedicated to crafting
+            breathtaking, personalized adventures. From scenic drives to Table Mountain’s peak to tranquil
+            wine tours and cultural journeys, we bring South Africa’s Mother City to life.
+          </p>
+          <p className="about-paragraph">
+            With deep local knowledge and years of experience, our mission is to turn your travels into
+            lasting memories, built on authenticity, passion, and the spirit of discovery.
+          </p>
+        </div>
+
+        {/* ============================= */}
+        {/* HERO IMAGE SHOWCASE */}
+        {/* ============================= */}
+        <div className="about-image-wrapper fade-in">
+          <img
+            src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1600"
+            alt="Cape Town coastal view"
+            className="about-hero-image"
+          />
+        </div>
+
+        {/* ============================= */}
+        {/* TESTIMONIALS & REVIEWS */}
+        {/* ============================= */}
+        <div className="reviews-section">
+          <h3 className="reviews-heading">What Our Travelers Say</h3>
+          <div className="reviews-grid">
+            {/* GOOGLE REVIEWS */}
+            <div className="review-card google-review fade-in">
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/512px-Google_%22G%22_Logo.svg.png"
+                alt="Google Reviews"
+                className="review-logo"
+              />
+              <p className="review-text">
+                ⭐⭐⭐⭐⭐ <br />
+                “The best tour experience we’ve ever had! Professional, friendly, and knowledgeable — ADM
+                Travels made our Cape Town adventure unforgettable.”
+              </p>
+              <span className="review-author">— Sarah T., Google Reviews</span>
+            </div>
+
+            {/* TRIPADVISOR REVIEWS */}
+            <div className="review-card tripadvisor-review fade-in">
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/2/23/TripAdvisor_Logo_circle-green_vertical-lockup_registered.svg"
+                alt="TripAdvisor Reviews"
+                className="review-logo"
+              />
+              <p className="review-text">
+                ⭐⭐⭐⭐⭐ <br />
+                “Highly recommend ADM Travels! Great service and attention to detail. We felt safe and
+                inspired throughout our stay in Cape Town.”
+              </p>
+              <span className="review-author">— David M., TripAdvisor</span>
+            </div>
           </div>
 
-          <div className="about-features">
-            <div className="feature-card fade-in">
-              <div className="feature-icon">🌍</div>
-              <h3>Local Expertise</h3>
-              <p>Born and raised in Cape Town, we know every corner of this beautiful city</p>
-            </div>
-            <div className="feature-card fade-in">
-              <div className="feature-icon">✨</div>
-              <h3>Tailored Experiences</h3>
-              <p>Every journey is customized to match your interests and preferences</p>
-            </div>
-            <div className="feature-card fade-in">
-              <div className="feature-icon">🤝</div>
-              <h3>Trusted Service</h3>
-              <p>Hundreds of satisfied travelers have explored Cape Town with us</p>
-            </div>
-            <div className="feature-card fade-in">
-              <div className="feature-icon">🎯</div>
-              <h3>Best Value</h3>
-              <p>Premium experiences at competitive prices with no hidden costs</p>
-            </div>
-          </div>
-
-          <div className="about-mission">
-            <h3>Our Mission</h3>
-            <p>
-              To inspire and empower travelers from around the world to discover the magic of Cape Town 
-              through authentic, sustainable, and enriching experiences that celebrate our diverse culture, 
-              stunning natural beauty, and warm South African hospitality.
-            </p>
+          {/* CALL TO ACTION */}
+          <div className="review-cta">
+            <a
+              href="https://www.google.com/maps/place/ADM+Travels"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="review-button"
+            >
+              Read More on Google
+            </a>
+            <a
+              href="https://www.tripadvisor.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="review-button"
+            >
+              View TripAdvisor Reviews
+            </a>
           </div>
         </div>
       </div>

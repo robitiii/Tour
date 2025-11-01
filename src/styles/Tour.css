@@ -1,0 +1,322 @@
+/* ============================= */
+/* TOURS PAGE BACKGROUND & STRUCTURE */
+/* ============================= */
+.tours-page {
+    min-height: 100vh;
+    padding-top: 8rem;
+    padding-bottom: 5rem;
+    background: linear-gradient(to bottom right, #d8c49c, #e5d1a1, #d1b97e); /* warm khaki tones */
+    font-family: 'Poppins', sans-serif;
+    position: relative;
+    overflow-x: hidden;
+  }
+  /* ============================= */
+/* CATEGORY FLEX WRAPPER */
+/* ============================= */
+.flex-wrapper {
+    display: flex;
+    flex-wrap: wrap;                  /* Allows multiple rows */
+    justify-content: center;          /* Centers content */
+    align-items: stretch;
+    gap: 2rem;                        /* Space between cards */
+    padding: 0 2rem;
+    margin-top: 2rem;
+    max-width: 1100px;                /* Keeps layout tidy */
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  /* Category cards: 2–3 per row */
+  .category-card {
+    flex: 1 1 30%;                    /* About 3 per row */
+    max-width: 30%;
+    min-width: 260px;
+    background: #ffffff;
+    border-radius: 16px;
+    text-align: center;
+    padding: 2rem;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+  }
+  
+  .category-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Responsive for tablets & mobile */
+  @media (max-width: 1024px) {
+    .category-card {
+      flex: 1 1 45%;                  /* 2 per row */
+      max-width: 45%;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .category-card {
+      flex: 1 1 100%;                 /* 1 per row */
+      max-width: 90%;
+    }
+  }
+  
+  /* ============================= */
+/* PAGE HEADING STYLES */
+/* ============================= */
+
+.page-heading {
+    font-size: 3.5rem;
+    font-weight: 800;
+    color: #003366; /* deep navy blue */
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    text-shadow: 1px 2px 4px rgba(0, 0, 0, 0.15);
+  }
+  
+  .page-subtext {
+    font-size: 1.35rem;
+    line-height: 1.8;
+    color: #002a55; /* softer blue tone */
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+    font-weight: 500;
+    padding: 0 1rem;
+  }
+  
+  .page-subtext span {
+    font-weight: 700;
+    color: #003366;
+  }
+  
+  /* Responsive scaling */
+  @media (max-width: 1024px) {
+    .page-heading {
+      font-size: 3rem;
+    }
+    .page-subtext {
+      font-size: 1.2rem;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .page-heading {
+      font-size: 2.5rem;
+      letter-spacing: 1px;
+    }
+    .page-subtext {
+      font-size: 1.1rem;
+    }
+  }
+  
+  
+  /* Decorative divider under main title */
+  .gold-divider {
+    width: 80px;
+    height: 4px;
+    background-color: #f5deb3;
+    margin: 1rem auto 2rem auto;
+    border-radius: 2px;
+  }
+  
+  /* ============================= */
+  /* CATEGORY CARD SECTION */
+  /* ============================= */
+  .flex-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 2rem;
+  }
+  
+  .category-card {
+    flex: 1 1 280px;
+    max-width: 300px;
+    background: #fff;
+    border-radius: 16px;
+    text-align: center;
+    padding: 2rem;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+  }
+  
+  .category-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+  }
+  
+  .category-card .emoji {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .category-card h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #003366;
+    margin-bottom: 0.5rem;
+  }
+  
+  .category-card p {
+    color: #666;
+    font-size: 0.9rem;
+  }
+  
+  /* ============================= */
+  /* FLEX WRAPPER FOR TOUR CARDS */
+  /* ============================= */
+  .tour-flex-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;       /* Center the cards */
+    align-items: stretch;          /* Make all cards equal height */
+    gap: 2rem;                     /* Spacing between cards */
+    padding: 0 2rem;
+    margin-top: 2rem;
+  }
+  
+  /* Each card (the motion.div container) */
+  .tour-flex-wrapper > div {
+    flex: 1 1 45%;                 /* 2 per row on medium screens */
+    max-width: 45%;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .tour-flex-wrapper > div:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* TOUR CARD INNER STYLING */
+  .tour-card img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+  }
+  
+  .tour-info {
+    padding: 1.5rem;
+  }
+  
+  .tour-info h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #003366;
+    margin-bottom: 0.5rem;
+  }
+  
+  .tour-info p {
+    color: #444;
+    font-size: 0.95rem;
+    margin-bottom: 0.75rem;
+    line-height: 1.6;
+  }
+  
+  .details-link {
+    color: #003366;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+  }
+  
+  .details-link:hover {
+    color: #f5deb3;
+  }
+  
+  /* ============================= */
+  /* BACK BUTTON */
+  /* ============================= */
+/* ============================= */
+/* BACK BUTTON STYLING */
+/* ============================= */
+
+.back-btn {
+    display: inline-block;
+    background: #003366;
+    color: #f5deb3;
+    font-weight: 600;
+    font-size: 1.05rem;
+    padding: 0.75rem 2rem;
+    border-radius: 50px;
+    margin-bottom: 2rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  }
+  
+  .back-btn:hover {
+    background: #f5deb3;
+    color: #003366;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+  }
+  
+  /* Centered alignment for both top and bottom buttons */
+  .back-btn.centered {
+    display: block;
+    margin: 0 auto 2rem auto;
+  }
+  
+  /* Wrapper to add spacing for bottom button */
+  .bottom-back-btn-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 2px solid rgba(0, 51, 102, 0.1);
+  }
+  
+  /* ============================= */
+  /* RESPONSIVE BEHAVIOR */
+  /* ============================= */
+  @media (max-width: 1200px) {
+    .tour-flex-wrapper > div {
+      flex: 1 1 48%;               /* still 2 per row but adjusts spacing */
+      max-width: 48%;
+    }
+  }
+  
+  @media (max-width: 900px) {
+    .tour-flex-wrapper > div {
+      flex: 1 1 100%;              /* single column on small screens */
+      max-width: 100%;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .category-card {
+      flex: 1 1 100%;
+      max-width: 90%;
+    }
+  
+    .tour-info h3 {
+      font-size: 1.15rem;
+    }
+  }
+  
+  /* ============================= */
+  /* SUBTLE BACKGROUND TEXTURE (OPTIONAL) */
+  /* ============================= */
+  .tours-page::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: 0;
+  }
+  
+  .container {
+    position: relative;
+    z-index: 1;
+  }
+  
