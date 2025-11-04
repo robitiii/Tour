@@ -200,8 +200,7 @@ const TourModal = ({ tour, isOpen, onClose }) => {
                 </div>
 
                 <div className="booking-total">
-                  <strong>Total:</strong> {tour.price} ZAR
-                  console.log('Paystack config:', paystackConfig);
+                  <strong>Total:</strong> {tour.price}
                 </div>
 
                 
