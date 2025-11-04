@@ -8,10 +8,15 @@ import '../styles/TourModal.css';
 const TourModal = ({ tour, isOpen, onClose }) => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [guests, setGuests] = useState(1);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    countryCode: '+27', // Default to South Africa
+  });
 
-  const publicKey = 'pk_test_e2780265954734e5655a5f40762183a906a8c172'; // Replace with your actual Paystack key
-  const amount = parseFloat(tour?.price?.replace('$', '') || 0) * 100;
-  const email = 'customer@example.com'; // Replace dynamically later
+  const publicKey = 'pk_test_e2780265954734e5655a5f40762183a906a8c172';
+  const amount = Math.floor(parseFloat(tour?.price?.replace('$', '') || 0) * 100);
 
   useEffect(() => {
     const handleEscape = (e) => e.key === 'Escape' && onClose();
@@ -25,29 +30,36 @@ const TourModal = ({ tour, isOpen, onClose }) => {
     };
   }, [isOpen, onClose]);
 
-  // Debug: Check data being passed in
-  console.log('Modal Open:', isOpen, 'Tour Data:', tour);
+  if (!isOpen || !tour) return null;
 
-  if (!isOpen) return null; // Do not render at all when closed
-  if (!tour) return null; // Ensure tour exists before rendering
+  const isFormValid =
+    formData.name.trim() !== '' &&
+    /\S+@\S+\.\S+/.test(formData.email) &&
+    formData.phone.trim() !== '' &&
+    selectedDate;
 
-  const paystackConfig = {
-    email,
-    amount,
-    metadata: {
-      tourName: tour.name,
-      tourCategory: tour.category,
-      date: selectedDate?.toLocaleDateString(),
-      guests,
-    },
-    publicKey,
-    text: 'Confirm & Pay Securely',
-    onSuccess: () => {
-      alert('✅ Payment successful! Your booking has been confirmed.');
-      onClose();
-    },
-    onClose: () => alert('Payment window closed.'),
-  };
+    const paystackConfig = {
+      email: formData.email,
+      amount: Number(tour?.price?.toString().replace(/[^0-9.]/g, '') || 0) * 100,
+      currency: 'ZAR', // or 'ZAR' if your dashboard supports it
+      publicKey,
+      metadata: {
+        customer_name: formData.name,
+        customer_phone: `${formData.countryCode}${formData.phone}`,
+        tour_name: tour.name,
+        tour_category: tour.category,
+        date: selectedDate?.toLocaleDateString(),
+        guests,
+      },
+      text: 'Confirm & Pay Securely',
+      onSuccess: (ref) => {
+        alert(`✅ Payment successful! Reference: ${ref.reference}`);
+        console.log('Payment reference:', ref);
+        onClose();
+      },
+      onClose: () => alert('Payment window closed.'),
+    };
+    
 
   return (
     <AnimatePresence>
@@ -97,6 +109,72 @@ const TourModal = ({ tour, isOpen, onClose }) => {
               <div className="booking-section visible-booking">
                 <h3>Reserve Your Spot</h3>
 
+                {/* Personal Info */}
+                <div className="booking-fields">
+                  <div className="booking-field">
+                    <label>Full Name</label>
+                    <input
+                      type="text"
+                      placeholder="John Doe"
+                      value={formData.name}
+                      onChange={(e) =>
+                        setFormData({ ...formData, name: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+
+                  <div className="booking-field">
+                    <label>Email Address</label>
+                    <input
+                      type="email"
+                      placeholder="john@example.com"
+                      value={formData.email}
+                      onChange={(e) =>
+                        setFormData({ ...formData, email: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+
+                  <div className="booking-field">
+                    <label>Phone Number</label>
+                    <div className="phone-input-wrapper">
+                      <select
+                        className="country-code-select"
+                        value={formData.countryCode}
+                        onChange={(e) =>
+                          setFormData({ ...formData, countryCode: e.target.value })
+                        }
+                      >
+                        <option value="+1">🇺🇸 +1 (US)</option>
+                        <option value="+27">🇿🇦 +27 (South Africa)</option>
+                        <option value="+44">🇬🇧 +44 (UK)</option>
+                        <option value="+234">🇳🇬 +234 (Nigeria)</option>
+                        <option value="+61">🇦🇺 +61 (Australia)</option>
+                        <option value="+91">🇮🇳 +91 (India)</option>
+                        <option value="+49">🇩🇪 +49 (Germany)</option>
+                        <option value="+33">🇫🇷 +33 (France)</option>
+                        <option value="+81">🇯🇵 +81 (Japan)</option>
+                        <option value="+971">🇦🇪 +971 (UAE)</option>
+                        <option value="+55">🇧🇷 +55 (Brazil)</option>
+                        <option value="+254">🇰🇪 +254 (Kenya)</option>
+                      </select>
+
+                      <input
+                        type="tel"
+                        placeholder="123 456 7890"
+                        value={formData.phone}
+                        onChange={(e) =>
+                          setFormData({ ...formData, phone: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Date & Guests */}
                 <div className="booking-fields">
                   <div className="booking-field">
                     <label>Select Date</label>
@@ -122,17 +200,20 @@ const TourModal = ({ tour, isOpen, onClose }) => {
                 </div>
 
                 <div className="booking-total">
-                  <strong>Total:</strong> {tour.price} USD
+                  <strong>Total:</strong> {tour.price} ZAR
+                  console.log('Paystack config:', paystackConfig);
                 </div>
 
-                {selectedDate ? (
-                  <PaystackButton
-                    {...paystackConfig}
-                    className="PaystackButton"
-                  />
+                
+
+
+                {/* Paystack button shows only when form is valid */}
+                {isFormValid ? (
+                  
+                  <PaystackButton {...paystackConfig} className="PaystackButton" />
                 ) : (
                   <p className="text-sm text-gray-500 italic">
-                    Please select a date to continue.
+                    Please complete all details and select a date to continue.
                   </p>
                 )}
               </div>
