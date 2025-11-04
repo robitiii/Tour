@@ -97,27 +97,38 @@ const TourModal = ({ tour, isOpen, onClose }) => {
   // Form is valid if no errors exist
   const isFormValid = Object.keys(validateForm()).length === 0;
 
-    const paystackConfig = {
-      email: formData.email.trim(),
-      amount: Number(tour?.price?.toString().replace(/[^0-9.]/g, '') || 0) * 100,
-      currency: 'ZAR', // or 'ZAR' if your dashboard supports it
-      publicKey,
-      metadata: {
-        customer_name: formData.name,
-        customer_phone: `${formData.countryCode}${formData.phone}`,
-        tour_name: tour.name,
-        tour_category: tour.category,
-        date: selectedDate?.toLocaleDateString(),
-        guests,
-      },
-      text: 'Confirm & Pay Securely',
-      onSuccess: (ref) => {
-        alert(`✅ Payment successful! Reference: ${ref.reference}`);
-        console.log('Payment reference:', ref);
-        onClose();
-      },
-      onClose: () => alert('Payment window closed.'),
-    };
+  // Calculate price: Extract base price and multiply by number of guests
+  const basePrice = Number(tour?.price?.toString().replace(/[^0-9.]/g, '') || 0);
+  const totalPrice = basePrice * guests;
+  
+  // Format price for display (with currency symbol)
+  const formatPrice = (amount) => {
+    return `R${amount.toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+
+  const paystackConfig = {
+    email: formData.email.trim(),
+    amount: Math.round(totalPrice * 100), // Paystack expects amount in cents/kobo
+    currency: 'ZAR',
+    publicKey,
+    metadata: {
+      customer_name: formData.name,
+      customer_phone: `${formData.countryCode}${formData.phone}`,
+      tour_name: tour.name,
+      tour_category: tour.category,
+      date: selectedDate?.toLocaleDateString(),
+      guests,
+      base_price: basePrice,
+      total_price: totalPrice,
+    },
+    text: 'Confirm & Pay Securely',
+    onSuccess: (ref) => {
+      alert(`✅ Payment successful! Reference: ${ref.reference}`);
+      console.log('Payment reference:', ref);
+      onClose();
+    },
+    onClose: () => alert('Payment window closed.'),
+  };
     
 
   return (
@@ -160,7 +171,7 @@ const TourModal = ({ tour, isOpen, onClose }) => {
               <p className="modal-description">{tour.description}</p>
 
               <div className="price-tags">
-                <span className="price-badge">{tour.price}</span>
+                <span className="price-badge">{tour.price} per person</span>
                 <span className="category-badge">{tour.category}</span>
               </div>
 
@@ -312,8 +323,21 @@ const TourModal = ({ tour, isOpen, onClose }) => {
                 </div>
 
                 <div className="booking-total">
-                  <strong>Total:</strong> {tour.price}
-          </div>
+                  <div className="price-breakdown">
+                    <div className="price-line">
+                      <span>Base Price (per person):</span>
+                      <span>{formatPrice(basePrice)}</span>
+                    </div>
+                    <div className="price-line">
+                      <span>Number of Guests:</span>
+                      <span>{guests}</span>
+                    </div>
+                    <div className="price-line total-line">
+                      <strong>Total Amount:</strong>
+                      <strong>{formatPrice(totalPrice)}</strong>
+                    </div>
+                  </div>
+                </div>
 
                 
 
@@ -332,8 +356,8 @@ const TourModal = ({ tour, isOpen, onClose }) => {
                         ));
                       })()}
                     </ul>
-                  </div>
-                )}
+          </div>
+        )}
       </div>
     </div>
           </motion.div>
