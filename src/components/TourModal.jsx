@@ -14,9 +14,9 @@ const TourModal = ({ tour, isOpen, onClose }) => {
     phone: '',
     countryCode: '+27', // Default to South Africa
   });
+  const [errors, setErrors] = useState({});
 
-  const publicKey = 'pk_test_e2780265954734e5655a5f40762183a906a8c172';
-  const amount = Math.floor(parseFloat(tour?.price?.replace('$', '') || 0) * 100);
+  const publicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
 
   useEffect(() => {
     const handleEscape = (e) => e.key === 'Escape' && onClose();
@@ -30,16 +30,75 @@ const TourModal = ({ tour, isOpen, onClose }) => {
     };
   }, [isOpen, onClose]);
 
+  // Reset form when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        countryCode: '+27',
+      });
+      setSelectedDate(null);
+      setGuests(1);
+      setErrors({});
+    }
+  }, [isOpen]);
+
   if (!isOpen || !tour) return null;
 
-  const isFormValid =
-    formData.name.trim() !== '' &&
-    /\S+@\S+\.\S+/.test(formData.email) &&
-    formData.phone.trim() !== '' &&
-    selectedDate;
+  // Validation function that returns error object
+  const validateForm = () => {
+    const validationErrors = {};
+
+    // Check name
+    if (!formData.name.trim()) {
+      validationErrors.name = 'Full name is required';
+    }
+
+    // Check email - more strict validation
+    const trimmedEmail = formData.email.trim();
+    if (!trimmedEmail) {
+      validationErrors.email = 'Email address is required';
+    } else {
+      // Check for spaces (invalid in email)
+      if (/\s/.test(trimmedEmail)) {
+        validationErrors.email = 'Email address cannot contain spaces';
+      }
+      // Better email regex: must have valid format with no spaces
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+        validationErrors.email = 'Please enter a valid email address (e.g., name@example.com)';
+      }
+      // Additional check: must have at least one character before @, domain name, and TLD
+      else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(trimmedEmail)) {
+        validationErrors.email = 'Please enter a valid email address with proper domain format';
+      }
+    }
+
+    // Check phone
+    if (!formData.phone.trim()) {
+      validationErrors.phone = 'Phone number is required';
+    }
+
+    // Check date
+    if (!selectedDate) {
+      validationErrors.date = 'Please select a date';
+    }
+
+    // Check guests - must be a number >= 1
+    const guestsNum = Number(guests);
+    if (isNaN(guestsNum) || guestsNum < 1 || !Number.isInteger(guestsNum)) {
+      validationErrors.guests = 'Guests must be a whole number greater than or equal to 1';
+    }
+
+    return validationErrors;
+  };
+
+  // Form is valid if no errors exist
+  const isFormValid = Object.keys(validateForm()).length === 0;
 
     const paystackConfig = {
-      email: formData.email,
+      email: formData.email.trim(),
       amount: Number(tour?.price?.toString().replace(/[^0-9.]/g, '') || 0) * 100,
       currency: 'ZAR', // or 'ZAR' if your dashboard supports it
       publicKey,
@@ -117,11 +176,20 @@ const TourModal = ({ tour, isOpen, onClose }) => {
                       type="text"
                       placeholder="John Doe"
                       value={formData.name}
-                      onChange={(e) =>
-                        setFormData({ ...formData, name: e.target.value })
-                      }
-                      required
+                      onChange={(e) => {
+                        setFormData({ ...formData, name: e.target.value });
+                        // Clear error when user starts typing
+                        if (errors.name) {
+                          setErrors({ ...errors, name: '' });
+                        }
+                      }}
+                      onBlur={() => {
+                        const validationErrors = validateForm();
+                        setErrors({ ...errors, name: validationErrors.name || '' });
+                      }}
+                      className={errors.name ? 'error' : ''}
                     />
+                    {errors.name && <span className="error-message">{errors.name}</span>}
                   </div>
 
                   <div className="booking-field">
@@ -130,11 +198,27 @@ const TourModal = ({ tour, isOpen, onClose }) => {
                       type="email"
                       placeholder="john@example.com"
                       value={formData.email}
-                      onChange={(e) =>
-                        setFormData({ ...formData, email: e.target.value })
-                      }
-                      required
+                      onChange={(e) => {
+                        // Remove spaces from email input
+                        const emailValue = e.target.value.replace(/\s/g, '');
+                        setFormData({ ...formData, email: emailValue });
+                        // Clear error when user starts typing
+                        if (errors.email) {
+                          setErrors({ ...errors, email: '' });
+                        }
+                      }}
+                      onBlur={() => {
+                        // Trim whitespace on blur
+                        const trimmedEmail = formData.email.trim();
+                        if (trimmedEmail !== formData.email) {
+                          setFormData({ ...formData, email: trimmedEmail });
+                        }
+                        const validationErrors = validateForm();
+                        setErrors({ ...errors, email: validationErrors.email || '' });
+                      }}
+                      className={errors.email ? 'error' : ''}
                     />
+                    {errors.email && <span className="error-message">{errors.email}</span>}
                   </div>
 
                   <div className="booking-field">
@@ -165,12 +249,21 @@ const TourModal = ({ tour, isOpen, onClose }) => {
                         type="tel"
                         placeholder="123 456 7890"
                         value={formData.phone}
-                        onChange={(e) =>
-                          setFormData({ ...formData, phone: e.target.value })
-                        }
-                        required
+                        onChange={(e) => {
+                          setFormData({ ...formData, phone: e.target.value });
+                          // Clear error when user starts typing
+                          if (errors.phone) {
+                            setErrors({ ...errors, phone: '' });
+                          }
+                        }}
+                        onBlur={() => {
+                          const validationErrors = validateForm();
+                          setErrors({ ...errors, phone: validationErrors.phone || '' });
+                        }}
+                        className={errors.phone ? 'error' : ''}
                       />
                     </div>
+                    {errors.phone && <span className="error-message">{errors.phone}</span>}
                   </div>
                 </div>
 
@@ -180,11 +273,18 @@ const TourModal = ({ tour, isOpen, onClose }) => {
                     <label>Select Date</label>
                     <DatePicker
                       selected={selectedDate}
-                      onChange={(date) => setSelectedDate(date)}
+                      onChange={(date) => {
+                        setSelectedDate(date);
+                        // Clear error when date is selected
+                        if (errors.date) {
+                          setErrors({ ...errors, date: '' });
+                        }
+                      }}
                       minDate={new Date()}
                       placeholderText="Choose your date"
-                      className="date-picker"
+                      className={`date-picker ${errors.date ? 'error' : ''}`}
                     />
+                    {errors.date && <span className="error-message">{errors.date}</span>}
                   </div>
 
                   <div className="booking-field">
@@ -193,30 +293,49 @@ const TourModal = ({ tour, isOpen, onClose }) => {
                       type="number"
                       min="1"
                       value={guests}
-                      onChange={(e) => setGuests(Number(e.target.value))}
-                      className="guest-input"
+                      onChange={(e) => {
+                        const value = Number(e.target.value);
+                        setGuests(value);
+                        // Clear error when user starts typing
+                        if (errors.guests) {
+                          setErrors({ ...errors, guests: '' });
+                        }
+                      }}
+                      onBlur={() => {
+                        const validationErrors = validateForm();
+                        setErrors({ ...errors, guests: validationErrors.guests || '' });
+                      }}
+                      className={`guest-input ${errors.guests ? 'error' : ''}`}
                     />
+                    {errors.guests && <span className="error-message">{errors.guests}</span>}
                   </div>
                 </div>
 
                 <div className="booking-total">
                   <strong>Total:</strong> {tour.price}
-                </div>
+          </div>
 
                 
 
 
                 {/* Paystack button shows only when form is valid */}
                 {isFormValid ? (
-                  
                   <PaystackButton {...paystackConfig} className="PaystackButton" />
                 ) : (
-                  <p className="text-sm text-gray-500 italic">
-                    Please complete all details and select a date to continue.
-                  </p>
+                  <div className="validation-message">
+                    <p>Please complete all required fields to continue:</p>
+                    <ul>
+                      {(() => {
+                        const validationErrors = validateForm();
+                        return Object.keys(validationErrors).map((key) => (
+                          <li key={key}>{validationErrors[key]}</li>
+                        ));
+                      })()}
+                    </ul>
+                  </div>
                 )}
-              </div>
-            </div>
+      </div>
+    </div>
           </motion.div>
         </motion.div>
       )}
