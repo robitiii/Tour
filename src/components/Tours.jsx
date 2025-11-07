@@ -2,12 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { categoryLabels, getCategories, getToursByCategory } from '../data/tours';
 import TourModal from './TourModal';
+import videos from '../videos';
 import '../styles/Tour.css';
+
+// Fallback icons if no Vimeo embed exists for a category
+const categoryFallbacks = {
+  nature: '🌿',
+  cultural: '🏛️',
+  city: '🏙️',
+  tasting: '🍷',
+  adventure: '🚁',
+};
+
+// Normalize data category keys to our Vimeo mapping keys
+const normalizeCategoryKey = (category) => {
+  if (category === 'cultural') return 'culture';
+  return category;
+};
 
 const Tours = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedTour, setSelectedTour] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [videoErrors, setVideoErrors] = useState({});
   const categories = getCategories();
 
   useEffect(() => {
@@ -77,12 +94,13 @@ const Tours = () => {
                     onClick={() => handleCategorySelect(category)}
                     className="category-card"
                   >
-                    <div className="emoji">
-                      {category === 'nature' && '🌿'}
-                      {category === 'cultural' && '🏛️'}
-                      {category === 'city' && '🏙️'}
-                      {category === 'tasting' && '🍷'}
-                      {category === 'adventure' && '🚁'}
+                    <div className="category-video-wrapper">
+                      {/* Prefer Vimeo embed when available; otherwise fallback to emoji */}
+                      {videos[normalizeCategoryKey(category)] ? (
+                        videos[normalizeCategoryKey(category)]
+                      ) : (
+                        <div className="category-fallback">{categoryFallbacks[category]}</div>
+                      )}
                     </div>
                     <h2>{categoryLabels[category]}</h2>
                     <p>{getToursByCategory(category).length} tours available</p>
@@ -164,6 +182,7 @@ const Tours = () => {
           )}
         </AnimatePresence>
       </div>
+      
 
       {/* ========================= */}
       {/* TOUR MODAL */}

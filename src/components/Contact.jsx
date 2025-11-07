@@ -10,27 +10,187 @@ const Contact = () => {
     message: ''
   });
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState(null);
+
+  // Get webhook URL - use contact-specific or fallback to general webhook
+  const contactWebhookUrl = import.meta.env.VITE_MAKE_CONTACT_WEBHOOK_URL || 
+                           import.meta.env.VITE_MAKE_WEBHOOK_URL;
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
     });
+    // Clear error for this field when user starts typing
+    if (errors[name]) {
+      setErrors({ ...errors, [name]: '' });
+    }
+    // Clear submit error
+    if (submitError) {
+      setSubmitError(null);
+    }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        tour: '',
-        message: ''
+  // Validate form
+  const validateForm = () => {
+    const validationErrors = {};
+
+    // Validate name
+    if (!formData.name.trim()) {
+      validationErrors.name = 'Name is required';
+    }
+
+    // Validate email
+    const trimmedEmail = formData.email.trim();
+    if (!trimmedEmail) {
+      validationErrors.email = 'Email address is required';
+    } else {
+      // Check for spaces
+      if (/\s/.test(trimmedEmail)) {
+        validationErrors.email = 'Email address cannot contain spaces';
+      }
+      // Validate email format
+      else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(trimmedEmail)) {
+        validationErrors.email = 'Please enter a valid email address';
+      }
+    }
+
+    // Validate phone
+    if (!formData.phone.trim()) {
+      validationErrors.phone = 'Phone number is required';
+    }
+
+    // Validate tour selection
+    if (!formData.tour.trim()) {
+      validationErrors.tour = 'Please select a tour';
+    }
+
+    // Validate message
+    if (!formData.message.trim()) {
+      validationErrors.message = 'Message is required';
+    } else if (formData.message.trim().length < 10) {
+      validationErrors.message = 'Message must be at least 10 characters';
+    }
+
+    return validationErrors;
+  };
+
+  // Send contact form data to Make.com webhook
+  const sendContactToWebhook = async () => {
+    if (!contactWebhookUrl) {
+      console.warn('⚠️ Make.com contact webhook URL not configured. Skipping webhook call.');
+      return { success: false, error: 'Webhook URL not configured' };
+    }
+
+    const contactData = {
+      // Contact Information
+      contact_name: formData.name.trim(),
+      contact_email: formData.email.trim(),
+      contact_phone: formData.phone.trim(),
+      
+      // Inquiry Details
+      inquiry_type: 'Contact Form',
+      selected_tour: formData.tour,
+      message: formData.message.trim(),
+      message_length: formData.message.trim().length,
+      
+      // Timestamps
+      inquiry_timestamp: new Date().toISOString(),
+      inquiry_timestamp_formatted: new Date().toLocaleString('en-ZA'),
+      inquiry_date: new Date().toLocaleDateString('en-ZA', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }),
+      
+      // Additional Metadata
+      contact_source: 'ADM Travels Website',
+      contact_platform: 'Web',
+      form_type: 'Contact Form',
+    };
+
+    try {
+      const response = await fetch(contactWebhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(contactData),
       });
-    }, 3000);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
+
+      const result = await response.json().catch(() => ({})); // Handle non-JSON responses
+      console.log('✅ Contact form data sent to Make.com successfully:', result);
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('❌ Error sending contact form data to Make.com:', error);
+      return { success: false, error: error.message };
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Validate form
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      // Send to Make.com webhook
+      const webhookResult = await sendContactToWebhook();
+      
+      if (webhookResult.success) {
+        console.log('✅ Contact form submitted successfully');
+        setSubmitted(true);
+        // Reset form after successful submission
+        setTimeout(() => {
+          setSubmitted(false);
+          setFormData({
+            name: '',
+            email: '',
+            phone: '',
+            tour: '',
+            message: ''
+          });
+          setErrors({});
+        }, 3000);
+      } else {
+        // Show success to user even if webhook fails (don't block submission)
+        console.warn('⚠️ Form submitted but webhook failed:', webhookResult.error);
+        setSubmitted(true);
+        setTimeout(() => {
+          setSubmitted(false);
+          setFormData({
+            name: '',
+            email: '',
+            phone: '',
+            tour: '',
+            message: ''
+          });
+          setErrors({});
+        }, 3000);
+      }
+    } catch (error) {
+      console.error('❌ Error submitting contact form:', error);
+      setSubmitError('There was an error submitting your message. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -46,9 +206,16 @@ const Contact = () => {
             {submitted ? (
               <div className="success-message fade-in">
                 <h3>Thank you! We'll get back to you shortly.</h3>
+                <p>Your inquiry has been received and we'll contact you soon.</p>
               </div>
             ) : (
               <form className="contact-form" onSubmit={handleSubmit}>
+                {submitError && (
+                  <div className="error-message-general">
+                    {submitError}
+                  </div>
+                )}
+
                 <div className="form-group">
                   <label htmlFor="name">Name</label>
                   <input
@@ -57,8 +224,14 @@ const Contact = () => {
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
+                    onBlur={() => {
+                      const validationErrors = validateForm();
+                      setErrors({ ...errors, name: validationErrors.name || '' });
+                    }}
+                    className={errors.name ? 'error' : ''}
                     required
                   />
+                  {errors.name && <span className="error-message">{errors.name}</span>}
                 </div>
 
                 <div className="form-group">
@@ -68,9 +241,26 @@ const Contact = () => {
                     id="email"
                     name="email"
                     value={formData.email}
-                    onChange={handleChange}
+                    onChange={(e) => {
+                      // Remove spaces from email
+                      const emailValue = e.target.value.replace(/\s/g, '');
+                      setFormData({ ...formData, email: emailValue });
+                      if (errors.email) {
+                        setErrors({ ...errors, email: '' });
+                      }
+                    }}
+                    onBlur={() => {
+                      const trimmedEmail = formData.email.trim();
+                      if (trimmedEmail !== formData.email) {
+                        setFormData({ ...formData, email: trimmedEmail });
+                      }
+                      const validationErrors = validateForm();
+                      setErrors({ ...errors, email: validationErrors.email || '' });
+                    }}
+                    className={errors.email ? 'error' : ''}
                     required
                   />
+                  {errors.email && <span className="error-message">{errors.email}</span>}
                 </div>
 
                 <div className="form-group">
@@ -81,8 +271,14 @@ const Contact = () => {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
+                    onBlur={() => {
+                      const validationErrors = validateForm();
+                      setErrors({ ...errors, phone: validationErrors.phone || '' });
+                    }}
+                    className={errors.phone ? 'error' : ''}
                     required
                   />
+                  {errors.phone && <span className="error-message">{errors.phone}</span>}
                 </div>
 
                 <div className="form-group">
@@ -92,6 +288,11 @@ const Contact = () => {
                     name="tour"
                     value={formData.tour}
                     onChange={handleChange}
+                    onBlur={() => {
+                      const validationErrors = validateForm();
+                      setErrors({ ...errors, tour: validationErrors.tour || '' });
+                    }}
+                    className={errors.tour ? 'error' : ''}
                     required
                   >
                     <option value="">Choose a tour...</option>
@@ -104,6 +305,7 @@ const Contact = () => {
                     <option value="helicopter">Helicopter Scenic Flight</option>
                     <option value="other">Other / Custom Tour</option>
                   </select>
+                  {errors.tour && <span className="error-message">{errors.tour}</span>}
                 </div>
 
                 <div className="form-group">
@@ -114,12 +316,25 @@ const Contact = () => {
                     rows="5"
                     value={formData.message}
                     onChange={handleChange}
+                    onBlur={() => {
+                      const validationErrors = validateForm();
+                      setErrors({ ...errors, message: validationErrors.message || '' });
+                    }}
+                    className={errors.message ? 'error' : ''}
                     required
                   ></textarea>
+                  {errors.message && <span className="error-message">{errors.message}</span>}
+                  {formData.message && !errors.message && (
+                    <span className="character-count">{formData.message.trim().length} characters</span>
+                  )}
                 </div>
 
-                <button type="submit" className="submit-button">
-                  Send Inquiry
+                <button 
+                  type="submit" 
+                  className="submit-button"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Sending...' : 'Send Inquiry'}
                 </button>
               </form>
             )}

@@ -15,8 +15,10 @@ const TourModal = ({ tour, isOpen, onClose }) => {
     countryCode: '+27', // Default to South Africa
   });
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const publicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
+  const makeWebhookUrl = import.meta.env.VITE_MAKE_WEBHOOK_URL;
 
   useEffect(() => {
     const handleEscape = (e) => e.key === 'Escape' && onClose();
@@ -106,6 +108,78 @@ const TourModal = ({ tour, isOpen, onClose }) => {
     return `R${amount.toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
+  // Send booking details to Make.com webhook
+  const sendBookingToWebhook = async (paymentReference) => {
+    if (!makeWebhookUrl) {
+      console.warn('⚠️ Make.com webhook URL not configured. Skipping webhook call.');
+      return { success: false, error: 'Webhook URL not configured' };
+    }
+
+    const bookingData = {
+      // Payment Information
+      payment_reference: paymentReference,
+      payment_status: 'successful',
+      payment_currency: 'ZAR',
+      payment_amount: totalPrice,
+      payment_amount_cents: Math.round(totalPrice * 100),
+      
+      // Customer Information
+      customer_name: formData.name.trim(),
+      customer_email: formData.email.trim(),
+      customer_phone: `${formData.countryCode}${formData.phone.trim()}`,
+      customer_country_code: formData.countryCode,
+      
+      // Tour Information
+      tour_id: tour.id,
+      tour_name: tour.name,
+      tour_category: tour.category,
+      tour_description: tour.description,
+      tour_base_price: basePrice,
+      
+      // Booking Details
+      booking_date: selectedDate?.toISOString() || new Date().toISOString(),
+      booking_date_formatted: selectedDate?.toLocaleDateString('en-ZA', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }),
+      number_of_guests: guests,
+      total_price: totalPrice,
+      
+      // Timestamps
+      booking_timestamp: new Date().toISOString(),
+      booking_timestamp_formatted: new Date().toLocaleString('en-ZA'),
+      
+      // Additional Metadata
+      booking_source: 'ADM Travels Website',
+      booking_platform: 'Web',
+    };
+
+    try {
+      const response = await fetch(makeWebhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(bookingData),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
+
+      const result = await response.json().catch(() => ({})); // Handle non-JSON responses
+      console.log('✅ Booking data sent to Make.com successfully:', result);
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('❌ Error sending booking data to Make.com:', error);
+      return { success: false, error: error.message };
+    }
+  };
+
   const paystackConfig = {
     email: formData.email.trim(),
     amount: Math.round(totalPrice * 100), // Paystack expects amount in cents/kobo
@@ -122,12 +196,41 @@ const TourModal = ({ tour, isOpen, onClose }) => {
       total_price: totalPrice,
     },
     text: 'Confirm & Pay Securely',
-    onSuccess: (ref) => {
-      alert(`✅ Payment successful! Reference: ${ref.reference}`);
-      console.log('Payment reference:', ref);
-      onClose();
+    onSuccess: async (ref) => {
+      setIsSubmitting(true);
+      
+      try {
+        // Show payment success immediately
+        alert(`✅ Payment successful! Reference: ${ref.reference}`);
+        console.log('Payment reference:', ref.reference);
+
+        // Send booking details to Make.com webhook
+        const webhookResult = await sendBookingToWebhook(ref.reference);
+        
+        if (webhookResult.success) {
+          console.log('✅ Booking details sent to Make.com');
+        } else {
+          console.warn('⚠️ Booking saved but webhook failed:', webhookResult.error);
+          // Don't block the user - payment was successful
+          alert(`✅ Payment successful! Note: There was an issue saving booking details, but your payment went through. Reference: ${ref.reference}`);
+        }
+      } catch (error) {
+        console.error('❌ Error processing booking:', error);
+        // Don't block the user - payment was successful
+        alert(`✅ Payment successful! Reference: ${ref.reference}\n\nNote: There was an issue saving booking details, but your payment was processed.`);
+      } finally {
+        setIsSubmitting(false);
+        // Close modal after a short delay to allow user to see success message
+        setTimeout(() => {
+          onClose();
+        }, 1000);
+      }
     },
-    onClose: () => alert('Payment window closed.'),
+    onClose: () => {
+      if (!isSubmitting) {
+        alert('Payment window closed.');
+      }
+    },
   };
     
 
