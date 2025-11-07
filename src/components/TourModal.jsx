@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { PaystackButton } from 'react-paystack';
+import { useNavigate } from 'react-router-dom';
 import '../styles/TourModal.css';
 
 const TourModal = ({ tour, isOpen, onClose }) => {
@@ -16,6 +17,7 @@ const TourModal = ({ tour, isOpen, onClose }) => {
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
 
   const publicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
   const makeWebhookUrl = import.meta.env.VITE_MAKE_WEBHOOK_URL;
@@ -102,6 +104,10 @@ const TourModal = ({ tour, isOpen, onClose }) => {
   // Calculate price: Extract base price and multiply by number of guests
   const basePrice = Number(tour?.price?.toString().replace(/[^0-9.]/g, '') || 0);
   const totalPrice = basePrice * guests;
+  const isFreeOrCustom =
+    totalPrice === 0 ||
+    /custom/i.test(String(tour?.price || '')) ||
+    /free/i.test(String(tour?.price || ''));
   
   // Format price for display (with currency symbol)
   const formatPrice = (amount) => {
@@ -445,22 +451,22 @@ const TourModal = ({ tour, isOpen, onClose }) => {
                 
 
 
-                {/* Paystack button shows only when form is valid */}
-                {isFormValid ? (
+                {/* Primary action: Paystack for paid tours, Contact for free/custom */}
+                {isFormValid && !isFreeOrCustom && (
                   <PaystackButton {...paystackConfig} className="PaystackButton" />
-                ) : (
-                  <div className="validation-message">
-                    <p>Please complete all required fields to continue:</p>
-                    <ul>
-                      {(() => {
-                        const validationErrors = validateForm();
-                        return Object.keys(validationErrors).map((key) => (
-                          <li key={key}>{validationErrors[key]}</li>
-                        ));
-                      })()}
-                    </ul>
-          </div>
-        )}
+                )}
+                {isFormValid && isFreeOrCustom && (
+                  <button
+                    type="button"
+                    className="PaystackButton"
+                    onClick={() => {
+                      onClose();
+                      navigate('/contact');
+                    }}
+                  >
+                    Send Inquiry
+                  </button>
+                )}
       </div>
     </div>
           </motion.div>

@@ -348,11 +348,11 @@ const Contact = () => {
             </div>
             <div className="info-item">
               <span className="info-icon">📞</span>
-              <p>+27 82 123 4567</p>
+              <p>+27 63 045 4587</p>
             </div>
             <div className="info-item">
               <span className="info-icon">✉️</span>
-              <p>info@admtravels.co.za</p>
+              <p>admtravels.sa@gmail.com</p>
             </div>
             <div className="social-links">
               <h4>Follow Us</h4>

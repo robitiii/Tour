@@ -29,8 +29,8 @@ const Footer = () => {
         {/* === Contact Info === */}
         <div className="footer-contact">
           <h4>Get in Touch</h4>
-          <p>Email: <a href="mailto:info@admtravels.com">info@admtravels.com</a></p>
-          <p>Phone: <a href="tel:+27211234567">+27 21 123 4567</a></p>
+          <p>Email: <a href="mailto:admtravels.sa@gmail.com">admtravels.sa@gmail.com</a></p>
+          <p>Phone: <a href="tel:+27630454587">+27 63 045 4587</a></p>
           <p>Cape Town, South Africa</p>
         </div>
       </div>
